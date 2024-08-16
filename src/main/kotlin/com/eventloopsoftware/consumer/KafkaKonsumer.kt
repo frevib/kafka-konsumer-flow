@@ -59,8 +59,6 @@ class KafkaKonsumer<K, V>(
                     consumer
                         .poll(timeout)
                         .forEach { record -> emit(record) }
-                    consumer
-                        .commitAsync()
                 }
             }
         }.catch { err ->
