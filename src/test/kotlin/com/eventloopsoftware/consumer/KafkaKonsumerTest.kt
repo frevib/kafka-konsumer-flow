@@ -1,6 +1,5 @@
-package com.eventloopsoftware
+package com.eventloopsoftware.consumer
 
-import com.eventloopsoftware.consumer.KafkaKonsumer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -24,9 +23,7 @@ class KafkaKonsumerTest {
                     updateBeginningOffsets(beginningOffsets)
                 }
 
-        val kafkaConsumer = KafkaKonsumer<String, String>(
-            consumer = mockConsumer
-        )
+        val kafkaConsumer = KafkaKonsumer<String, String>(mockConsumer)
 
         /**
          * These `schedulePollTask` are executed right after a call to .poll().
