@@ -18,13 +18,8 @@ fun main() {
         this[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = true
     }
 
-    // Create Apache Consumer
-    val consumer = KafkaConsumer<String, String>(kafkaProperties).apply {
-        subscribe(setOf("test_topic"))
-    }
-
     // Give Apache to KafkaKonsumer to create a Kotlin FLow consumer
-    val kafkaKonsumer = KafkaKonsumer(consumer)
+    val kafkaKonsumer = KafkaKonsumer<String, String>(kafkaProperties, setOf("test_topic"))
 
     // Run KafkaKonsumer in coroutine
     runApp(kafkaKonsumer)

@@ -1,19 +1,20 @@
 package com.eventloopsoftware.consumer
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
-import org.apache.kafka.clients.consumer.ConsumerRecord
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.Consumer
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.WakeupException
 import java.io.IOException
 import java.time.Duration
 import java.util.*
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.kafka.clients.consumer.KafkaConsumer
-
 private val logger = KotlinLogging.logger {}
 
-class KafkaKonsumer<K, V>(
+class KafkaKonsumerParallel<K, V>(
     val consumer: Consumer<K, V>,
 ) {
 
@@ -21,9 +22,8 @@ class KafkaKonsumer<K, V>(
         kafkaConsumerConfig: Properties,
         topics: Set<String>
     ) : this(
-        KafkaConsumer<K, V>(kafkaConsumerConfig).apply {
-            subscribe(topics)
-        }
+        KafkaConsumer<K, V>(kafkaConsumerConfig)
+            .apply { subscribe(topics) }
     )
 
 
@@ -37,8 +37,7 @@ class KafkaKonsumer<K, V>(
         })
 
         consumer
-            .asFlow()
-            .map(processFunction)
+            .asFlow(processFunction)
             .catch { err ->
                 logger.error(err) { "Consuming error: ${err.message}" }
                 if (err !is IOException) {
@@ -51,14 +50,20 @@ class KafkaKonsumer<K, V>(
     }
 
     private fun <K, V> Consumer<K, V>.asFlow(
-        timeout: Duration = Duration.ofMillis(500)
-    ): Flow<ConsumerRecord<K, V>> =
-        flow {
+        processFunction: suspend (ConsumerRecord<K, V>) -> Unit,
+        timeout: Duration = Duration.ofMillis(500),
+    ) =
+        channelFlow {
             use { consumer ->
                 while (true) {
-                    consumer
+                    val jobs = consumer
                         .poll(timeout)
-                        .forEach { record -> emit(record) }
+                        .map { record ->
+                            launch {
+                                send(processFunction(record))
+                            }
+                        }
+                    jobs.joinAll()
                 }
             }
         }.catch { err ->
