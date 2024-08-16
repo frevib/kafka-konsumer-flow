@@ -12,7 +12,6 @@ class KafkaKonsumerTest {
 
     @Test
     fun `run regular consumer`() = runTest {
-        // OffsetResetStrategy.EARLIEST -> new consumer group IDs are reading from the beginning of the topic
         val mockConsumer =
             MockConsumer<String, String>(OffsetResetStrategy.EARLIEST)
                 .apply {
@@ -25,10 +24,6 @@ class KafkaKonsumerTest {
 
         val kafkaConsumer = KafkaKonsumer<String, String>(mockConsumer)
 
-        /**
-         * These `schedulePollTask` are executed right after a call to .poll().
-         * The next schedulePollTask after the second .poll(), etc.
-         */
         mockConsumer.schedulePollTask {
             addRecords(mockConsumer, 0, 10)
         }
@@ -37,14 +32,12 @@ class KafkaKonsumerTest {
         }
         mockConsumer.schedulePollTask { kafkaConsumer.stop() }
 
-        // How to process each Kafka message
-        val processFunction: suspend (ConsumerRecord<String, String>) -> Unit = {
+        val processRecordFunction: suspend (ConsumerRecord<String, String>) -> Unit = {
             delay(1)
             println("Key: ${it.key()} -- Value: ${it.value()}")
         }
 
-        kafkaConsumer.startConsume(processFunction)
-
+        kafkaConsumer.startConsume(processRecordFunction)
     }
 
     private fun addRecords(

@@ -12,7 +12,6 @@ class KafkaKonsumerParallelTest {
 
     @Test
     fun `performance test parallel consumer`() = runBlocking {
-        // OffsetResetStrategy.EARLIEST -> new consumer group IDs are reading from the beginning of the topic
         val mockConsumer =
             MockConsumer<String, String>(OffsetResetStrategy.EARLIEST)
                 .apply {
@@ -26,9 +25,6 @@ class KafkaKonsumerParallelTest {
 
         val kafkaConsumerParallel = KafkaKonsumerParallel<String, String>(mockConsumer)
 
-        // These schedulePollTasks are executed right after a call
-        // to .poll(). The next schedulePollTasks after the second
-        // .poll() etc.
         mockConsumer.schedulePollTask {
             addRecords(mockConsumer, 0, 100_000)
         }
@@ -38,13 +34,12 @@ class KafkaKonsumerParallelTest {
 
         mockConsumer.schedulePollTask { kafkaConsumerParallel.stop() }
 
-        // How to process each Kafka message
-        val processFunction: suspend (ConsumerRecord<String, String>) -> Unit = {
+        val processRecordFunction: suspend (ConsumerRecord<String, String>) -> Unit = {
             delay(1)
             println("Key: ${it.key()} -- Value: ${it.value()}")
         }
 
-        kafkaConsumerParallel.startConsume(processFunction)
+        kafkaConsumerParallel.startConsume(processRecordFunction)
     }
 
     private fun addRecords(mockConsumer: MockConsumer<String, String>, offsetBegin: Int, offsetEnd: Int) {
