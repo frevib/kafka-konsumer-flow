@@ -1,13 +1,13 @@
 ## Kotlin Kafka Flow
-Kafka consumer using Kotlin Flow
+Thin wrapper around Apache Kafka consumer using Kotlin Flow
 
-* Kafka consumer, using `flow`
-* Parallel Kafka consumer using `channelFlow` (you loose partition ordering)
+Two variants:
+* Kafka consumer
+* Parallel Kafka consumer using coroutines (you loose partition ordering)
 
 ### Usage
 Copy code from `KafkaConsumer.kt` or `KafkaKonsumerParallel`
 
 
 ### Examples
-
 In `com/eventloopsoftware/examples`

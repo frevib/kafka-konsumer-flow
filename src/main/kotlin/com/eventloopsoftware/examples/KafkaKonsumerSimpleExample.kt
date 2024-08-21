@@ -1,10 +1,10 @@
 package com.eventloopsoftware.examples
 
 import com.eventloopsoftware.consumer.KafkaKonsumer
+import com.eventloopsoftware.consumer.KafkaKonsumerParallel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.util.*
 
@@ -20,6 +20,7 @@ fun main() {
 
     // Give Apache to KafkaKonsumer to create a Kotlin FLow consumer
     val kafkaKonsumer = KafkaKonsumer<String, String>(kafkaProperties, setOf("test_topic"))
+    val kafkaKonsumerParallel = KafkaKonsumerParallel<String, String>(kafkaProperties, setOf("test_topic"))
 
     // Run KafkaKonsumer in coroutine
     runApp(kafkaKonsumer)
