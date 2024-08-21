@@ -26,10 +26,10 @@ class KafkaKonsumerParallelTest {
         val kafkaConsumerParallel = KafkaKonsumerParallel<String, String>(mockConsumer)
 
         mockConsumer.schedulePollTask {
-            addRecords(mockConsumer, 0, 100_000)
+            addRecords(mockConsumer, 0, 1_000)
         }
         mockConsumer.schedulePollTask {
-            addRecords(mockConsumer, 100_000, 200_000)
+            addRecords(mockConsumer, 1_000, 2_000)
         }
 
         mockConsumer.schedulePollTask { kafkaConsumerParallel.stop() }

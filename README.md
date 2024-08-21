@@ -5,10 +5,9 @@ Kafka consumer using Kotlin Flow
 * Parallel Kafka consumer using `channelFlow` (you loose partition ordering)
 
 ### Usage
-Copy code from `KafkaConsumer.kt` or 
-
+Copy code from `KafkaConsumer.kt` or `KafkaKonsumerParallel`
 
 
 ### Examples
 
-in `com/eventloopsoftware/examples`
+In `com/eventloopsoftware/examples`
