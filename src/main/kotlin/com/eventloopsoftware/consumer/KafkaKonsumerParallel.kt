@@ -1,7 +1,9 @@
 package com.eventloopsoftware.consumer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.Consumer
@@ -52,33 +54,32 @@ class KafkaKonsumerParallel<K, V>(
     private fun <K, V> Consumer<K, V>.asFlow(
         processFunction: suspend (ConsumerRecord<K, V>) -> Unit,
         timeout: Duration = Duration.ofMillis(500),
-    ) =
-        channelFlow {
-            use { consumer ->
-                while (true) {
-                    val jobs = consumer
-                        .poll(timeout)
-                        .map { record ->
-                            launch {
-                                send(processFunction(record))
-                            }
+    ) = channelFlow {
+        use { consumer ->
+            while (true) {
+                val jobs = consumer
+                    .poll(timeout)
+                    .map { record ->
+                        launch {
+                            send(processFunction(record))
                         }
-                    jobs.joinAll()
-                }
-            }
-        }.catch { err ->
-            when (err) {
-                // we ignore WakeupException, as this is an expected exception
-                is WakeupException -> {
-                    logger.warn { "Wake up exception, shutting down..." }
-                }
-
-                else -> {
-                    logger.error(err) { "Kafka consumer error..." }
-                    throw err
-                }
+                    }
+                jobs.joinAll()
             }
         }
+    }.catch { err ->
+        when (err) {
+            // we ignore WakeupException, as this is an expected exception
+            is WakeupException -> {
+                logger.warn { "Wake up exception, shutting down..." }
+            }
+
+            else -> {
+                logger.error(err) { "Kafka consumer error..." }
+                throw err
+            }
+        }
+    }
 
     // Use to manually stop consumer
     fun stop() = consumer.wakeup()
