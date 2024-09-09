@@ -1,7 +1,7 @@
 package com.eventloopsoftware.consumer
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 class KafkaKonsumerParallelTest {
 
     @Test
-    fun `performance test parallel consumer`() = runBlocking {
+    fun `performance test parallel consumer`() = runTest {
         val mockConsumer =
             MockConsumer<String, String>(OffsetResetStrategy.EARLIEST)
                 .apply {
