@@ -1,11 +1,13 @@
 package com.eventloopsoftware.consumer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -57,12 +59,10 @@ class KafkaKonsumerParallel<K, V>(
     ) = channelFlow {
         use { consumer ->
             while (true) {
-                val jobs = consumer
-                    .poll(timeout)
+                val records = withContext(Dispatchers.IO) { consumer.poll(timeout) }
+                val jobs = records
                     .map { record ->
-                        launch {
-                            send(processFunction(record))
-                        }
+                        launch { send(processFunction(record)) }
                     }
                 jobs.joinAll()
             }
